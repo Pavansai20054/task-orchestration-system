@@ -25,6 +25,7 @@ from app.services.project_service import (
 router = APIRouter(prefix="/workspaces", tags=["Workspaces"])
 
 
+@router.post("", response_model=WorkspaceResponse)
 @router.post("/", response_model=WorkspaceResponse)
 def create_new_workspace(
     workspace: WorkspaceCreate,
@@ -46,6 +47,7 @@ def add_workspace_member(
     return add_member(db, current_user, workspace_id, user_id, role, user_email)
 
 
+@router.get("", response_model=list[WorkspaceResponse])
 @router.get("/", response_model=list[WorkspaceResponse])
 def get_my_workspaces(
     db: Session = Depends(get_db),

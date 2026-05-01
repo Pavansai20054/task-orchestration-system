@@ -29,6 +29,7 @@ from app.services.task_service import (
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 
+@router.post("", response_model=TaskResponse)
 @router.post("/", response_model=TaskResponse)
 def create_new_task(
     task: TaskCreate,
@@ -48,6 +49,7 @@ def update_existing_task(
     return update_task(db, current_user, task_id, task)
 
 
+@router.get("", response_model=list[TaskResponse])
 @router.get("/", response_model=list[TaskResponse])
 def get_all_tasks(
     db: Session = Depends(get_db),
