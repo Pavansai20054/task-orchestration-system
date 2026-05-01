@@ -42,6 +42,14 @@ export default function Dashboard({ currentUser }: DashboardProps) {
   const [selectedNotificationTask, setSelectedNotificationTask] = useState<Task | null>(null);
   const [showNotificationDetail, setShowNotificationDetail] = useState(false);
 
+  // Derived views for dashboard summary
+  const overdueTasks = assignedTasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'done');
+  const statusCounts = {
+    todo: assignedTasks.filter(t => t.status === 'todo').length,
+    in_progress: assignedTasks.filter(t => t.status === 'in_progress').length,
+    done: assignedTasks.filter(t => t.status === 'done').length,
+  };
+
   const selectedWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === selectedWorkspaceId) ?? null,
     [workspaces, selectedWorkspaceId],
@@ -327,6 +335,46 @@ export default function Dashboard({ currentUser }: DashboardProps) {
           >
             🔔 Notifications ({assignedTasks.length})
           </button>
+        </div>
+      </div>
+
+      {/* Dashboard summary: Tasks / Status / Overdue */}
+      <div className="dashboard-summary">
+        <div className="summary-card">
+          <h4>Tasks</h4>
+          {assignedTasks.length === 0 ? (
+            <p className="empty-subtitle">No tasks assigned to you</p>
+          ) : (
+            <ul className="summary-list">
+              {assignedTasks.slice(0, 5).map((t) => (
+                <li key={t.id}>{t.title}{t.due_date ? ` — ${new Date(t.due_date).toLocaleDateString()}` : ''}</li>
+              ))}
+            </ul>
+          )}
+          {assignedTasks.length > 5 ? <p className="hint-text">And {assignedTasks.length - 5} more...</p> : null}
+        </div>
+
+        <div className="summary-card">
+          <h4>Status</h4>
+          <div className="status-chips">
+            <span className="chip chip-todo">Todo: {statusCounts.todo}</span>
+            <span className="chip chip-progress">In Progress: {statusCounts.in_progress}</span>
+            <span className="chip chip-done">Done: {statusCounts.done}</span>
+          </div>
+        </div>
+
+        <div className="summary-card">
+          <h4>Overdue</h4>
+          {overdueTasks.length === 0 ? (
+            <p className="empty-subtitle">No overdue tasks</p>
+          ) : (
+            <ul className="summary-list">
+              {overdueTasks.slice(0, 5).map((t) => (
+                <li key={t.id}>{t.title} — due {new Date(t.due_date!).toLocaleString()}</li>
+              ))}
+            </ul>
+          )}
+          {overdueTasks.length > 5 ? <p className="hint-text">And {overdueTasks.length - 5} more...</p> : null}
         </div>
       </div>
 
