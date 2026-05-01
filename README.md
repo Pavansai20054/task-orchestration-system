@@ -1,93 +1,225 @@
-# Task Orchestration System
+# Team Task Manager — Task Orchestration System
 
-![Python](https://img.shields.io/badge/python-3.12-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-teal)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/python-3.12-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-teal) ![React](https://img.shields.io/badge/React-18+-61DAFB) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791) ![License](https://img.shields.io/badge/license-MIT-green)
 
-FastAPI backend for task and workspace management with JWT auth, SQLAlchemy ORM, and Pydantic schemas.
+<p align="center">
+  <img src="./assets/Frontend-preview.png" alt="Frontend preview" width="720" />
+  <h3>Team Task Manager — RBAC-enabled task & workspace orchestration</h3>
+  <sub>FastAPI backend • React + TypeScript frontend • PostgreSQL</sub>
+</p>
+
+---
+
+## Table of Contents
+
+- [About](#about)
+- [Tech Stack](#tech-stack)
+- [Features](#features)
+- [Architecture & ER Diagram](#architecture--er-diagram)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Quickstart (Development)](#quickstart-development)
+  - [1. Database setup](#1-database-setup)
+  - [2. Backend setup (FastAPI)](#2-backend-setup-fastapi)
+  - [3. Frontend setup (React + Vite)](#3-frontend-setup-react--vite)
+- [API Endpoints & Documentation](#api-endpoints--documentation)
+- [Database Inspection](#database-inspection)
+- [Testing](#testing)
+- [Deployment Notes](#deployment-notes)
+- [Contributing](#contributing)
+- [License](#license)
+- [Maintainer & Contact](#maintainer--contact)
+
+---
+
+## About
+
+The **Team Task Manager** is a production-oriented, full-stack application that enables teams to manage workspaces and tasks with role-based access control (RBAC). It supports multi-assignee tasks, workspace roles (admin/member), JWT authentication, notifications for assigned tasks, and a dashboard that tracks progress and overdue items.
+
+## Tech Stack
+
+- Backend: Python 3.12, FastAPI, SQLAlchemy, Alembic, Pydantic
+- Frontend: React 18, TypeScript, Vite
+- Database: PostgreSQL 15+
+- Auth: JWT (HS256)
+
+## Features
+
+- Secure registration, login, and logout with password hashing and validation
+- Workspace-level RBAC (admin/member)
+- Task CRUD with multi-assignees, status, priority, and due dates
+- Workspace member management
+- Notifications for assigned tasks
+- Dashboard with workspace statistics and overdue tasks
+
+## Architecture & ER Diagram
+
+The application uses a 3-tier architecture (Presentation, Application, Data). The ER diagram is included below.
+
+![ER Diagram](./assets/ER_Diagram.png)
+
+Mermaid source and DOT/SVG files are available in the repository root: `ER_Diagram.md`, `ER_Diagram.dot`, `ER_Diagram.svg`.
+
+## Project Structure
+
+```
+team-task-manager/
+├── backend/                 # FastAPI application
+│   ├── app/
+│   │   ├── api/            # API routers
+│   │   ├── core/           # Config, security, db connection
+│   │   ├── models/         # SQLAlchemy models
+│   │   ├── schemas/        # Pydantic schemas
+│   │   └── main.py         # App entrypoint
+│   ├── alembic/            # Migrations
+│   ├── requirements.txt
+│   └── .env.example        # Environment variables template
+├── frontend/               # React + Vite app
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── api/
+│   │   └── main.tsx
+│   ├── package.json
+│   └── public/
+├── assets/                 # Images and diagrams
+├── db_inspect_queries.sql  # Helper SQL queries
+└── README.md
+```
 
 ## Prerequisites
 
-- Python 3.12+
-- pip
+- Node.js (v18+) and npm
+- Python (v3.12+)
+- PostgreSQL (v15+) running locally, WSL, or in Docker
+- Git
 
-## Install
+---
+
+## Quickstart (Development)
+
+### 1. Database setup
+
+Start PostgreSQL and create the project database:
+
+```sql
+CREATE DATABASE task_orchestration_db;
+```
+
+### 2. Backend setup (FastAPI)
 
 ```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
+cp .env.example .env        # update values in .env
+alembic upgrade head        # run migrations
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Usage
+Swagger UI: http://127.0.0.1:8000/docs
+
+### 3. Frontend setup (React + Vite)
 
 ```bash
-uvicorn app.main:app --reload
+cd frontend
+npm install
+npm run dev
 ```
 
-API base: `http://127.0.0.1:8000`
+Open: http://localhost:5173
 
-## API Overview
+## API Endpoints & Documentation
 
-- Auth: `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`
-- Users: `GET /users/me`, `PUT /users/me`
-- Workspaces: `POST /workspaces`, `GET /workspaces`, `GET /workspaces/{id}`, `PUT /workspaces/{id}`, `DELETE /workspaces/{id}`, `POST /workspaces/{id}/members`, `GET /workspaces/{id}/members`, `DELETE /workspaces/{id}/members/{user_id}`, `GET /workspaces/{id}/tasks`
-- Tasks: `POST /tasks`, `GET /tasks`, `GET /tasks/{id}`, `PUT /tasks/{id}`, `PATCH /tasks/{id}/status`, `PATCH /tasks/{id}/assign`, `DELETE /tasks/{id}`
-- Dashboard: `GET /dashboard`, `GET /dashboard/overdue-tasks`
+Interactive docs are available (Swagger and ReDoc) via the running backend.
 
-Postman collection: [backend/docs/postman_collection.json](backend/docs/postman_collection.json)
+The Postman collection is included at `backend/docs/postman_collection.json`.
 
-## Run tests
+Key endpoints overview:
+
+| Category   | Method | Endpoint                          | Description                       |
+|------------|--------|-----------------------------------|-----------------------------------|
+| Auth       | POST   | /auth/register                    | Register a new user               |
+| Auth       | POST   | /auth/login                       | Obtain JWT token                  |
+| Users      | GET    | /users/me                         | Get current user profile          |
+| Workspaces | POST   | /workspaces                       | Create a workspace                |
+| Workspaces | GET    | /workspaces                       | List user workspaces              |
+| Workspaces | DELETE | /workspaces/{id}                  | Delete workspace (Admin only)     |
+| Tasks      | POST   | /tasks                            | Create a task                     |
+| Tasks      | GET    | /tasks                            | List tasks (workspace)            |
+| Tasks      | PATCH  | /tasks/{id}/status                | Update task status                |
+| Tasks      | POST   | /tasks/{id}/assignees             | Add assignee to a task            |
+
+## Database Inspection
+
+Use the helper SQL file `db_inspect_queries.sql` or run queries with `psql`:
 
 ```bash
-python -m pytest
+psql -h localhost -U <db_user> -d task_orchestration_db
+\i db_inspect_queries.sql
 ```
 
-## Author
+Useful manual queries:
 
-- Maintainer: Your Name
+- List tables: `\dt`
+- Describe columns for a table:
+
+```sql
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_name = 'tasks';
+```
+
+- Count rows per table:
+
+```sql
+SELECT 'users' AS table_name, COUNT(*) FROM users
+UNION ALL
+SELECT 'workspaces', COUNT(*) FROM workspaces
+UNION ALL
+SELECT 'tasks', COUNT(*) FROM tasks;
+```
+
+- Find overdue tasks:
+
+```sql
+SELECT * FROM tasks
+WHERE due_date < now() AND status <> 'done';
+```
+
+## Testing
+
+Backend tests (if present) run with pytest:
+
+```bash
+cd backend
+pytest
+```
+
+## Deployment Notes
+
+- Use Gunicorn with Uvicorn workers for production.
+- Use managed Postgres in production and run `alembic upgrade head` during deploys.
+- Keep secrets in environment variables or a secrets manager; do not commit `.env`.
+- Build frontend with `npm run build` and serve `dist/` via Nginx or CDN.
 
 ## Contributing
 
-Contributions are welcome. Please open an issue or pull request with a clear description.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/YourFeature`
+3. Commit changes and push
+4. Open a pull request
 
 ## License
 
-MIT
+MIT License
 
-## Project Structure (with use case)
+## Maintainer & Contact
 
-```
-app/
-	main.py                 # FastAPI app setup and router registration
-	api/
-		deps.py               # Shared dependencies (auth, DB session, current user)
-		routes/
-			auth.py             # Auth endpoints (register/login)
-			projects.py         # Workspace endpoints
-			tasks.py            # Task endpoints
-			users.py            # User endpoints
-	core/
-		config.py             # App settings and environment configuration
-		security.py           # Password hashing and JWT helpers
-	db/
-		base.py               # SQLAlchemy base and model imports
-		database.py           # Engine, session factory, and DB dependency
-	models/
-		project.py            # Workspace ORM model
-		task.py               # Task ORM model
-		user.py               # User ORM model
-		workspace_member.py   # Workspace membership ORM model
-	schemas/
-		project.py            # Workspace request/response schemas
-		task.py               # Task request/response schemas
-		user.py               # User/auth request/response schemas
-		workspace_member.py   # Workspace membership schemas
-	services/
-		auth_service.py       # User registration/login logic
-		project_service.py    # Workspace business logic
-		task_service.py       # Task business logic
-	utils/
-		validators.py         # Reusable validators and helpers
-docs/
-	AGENTS.md               # AI agent instructions for this codebase
-	postman_collection.json # Postman collection for API requests
-```
+**Rangdal Pavansai**
+
+- 📧 pavansai.20066@gmail.com
+- 💼 https://linkedin.com/in/rangdal-pavansai
+
+---
