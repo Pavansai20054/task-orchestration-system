@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_
 from fastapi import HTTPException, status
 
 from app.models.project import Workspace
@@ -228,11 +229,17 @@ def get_workspace_member_completion(db: Session, current_user: User, workspace_i
     for membership in memberships:
         total_tasks = db.query(Task).filter(
             Task.workspace_id == workspace_id,
-            Task.assigned_to == membership.user_id
+            or_(
+                Task.assignees.any(id=membership.user_id),
+                Task.assigned_to == membership.user_id
+            )
         ).count()
         completed_tasks = db.query(Task).filter(
             Task.workspace_id == workspace_id,
-            Task.assigned_to == membership.user_id,
+            or_(
+                Task.assignees.any(id=membership.user_id),
+                Task.assigned_to == membership.user_id
+            ),
             Task.status == "done"
         ).count()
         completion_percentage = round((completed_tasks / total_tasks) * 100, 2) if total_tasks else 0.0

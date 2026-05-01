@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from fastapi import HTTPException, status
 
 from app.models.task import Task
@@ -51,6 +52,7 @@ def create_task(db: Session, current_user: User, data):
         status=data.status,
         priority=data.priority,
         workspace_id=data.workspace_id,
+        assigned_to=assignees[0].id if assignees else None,
         created_by=current_user.id,
         due_date=data.due_date,
         assignees=assignees
@@ -113,7 +115,7 @@ def update_task(db: Session, current_user: User, task_id: int, data):
     if membership.role != "admin":
         if "status" in update_data and len(update_data) == 1:
             # Check if user is assigned to this task
-            is_assigned = any(a.id == current_user.id for a in task.assignees)
+            is_assigned = any(a.id == current_user.id for a in task.assignees) or task.assigned_to == current_user.id
             if not is_assigned:
                 raise HTTPException(
                     status_code=403,
@@ -138,6 +140,7 @@ def update_task(db: Session, current_user: User, task_id: int, data):
             user = db.query(User).filter(User.id == assignee_id).first()
             if user:
                 task.assignees.append(user)
+        task.assigned_to = task.assignees[0].id if task.assignees else None
 
     # Admin can update all fields safely
     for field, value in update_data.items():
@@ -176,6 +179,8 @@ def patch_task_status(db: Session, current_user: User, task_id: int, status_valu
 
     # Check if user is assigned to task or is admin
     is_assigned = any(a.id == current_user.id for a in task.assignees)
+    if not is_assigned and task.assigned_to == current_user.id:
+        is_assigned = True
     if membership.role != "admin" and not is_assigned:
         raise HTTPException(
             status_code=403,
@@ -205,6 +210,8 @@ def add_task_assignee(db: Session, current_user: User, task_id: int, user_id: in
     user = db.query(User).filter(User.id == user_id).first()
     if user:
         task.assignees.append(user)
+        if task.assigned_to is None:
+            task.assigned_to = user.id
         db.commit()
         db.refresh(task)
     
@@ -221,6 +228,8 @@ def remove_task_assignee(db: Session, current_user: User, task_id: int, user_id:
 
     # Find and remove assignee
     task.assignees = [a for a in task.assignees if a.id != user_id]
+    if task.assigned_to == user_id:
+        task.assigned_to = task.assignees[0].id if task.assignees else None
     db.commit()
     db.refresh(task)
     
@@ -241,6 +250,7 @@ def patch_task_assignment(db: Session, current_user: User, task_id: int, assigne
             user = db.query(User).filter(User.id == assignee_id).first()
             if user:
                 task.assignees.append(user)
+    task.assigned_to = task.assignees[0].id if task.assignees else None
     
     db.commit()
     db.refresh(task)
@@ -261,7 +271,10 @@ def delete_task(db: Session, current_user: User, task_id: int):
 def get_assigned_tasks(db: Session, current_user: User):
     """Get all tasks assigned to the current user"""
     tasks = db.query(Task).filter(
-        Task.assignees.any(id=current_user.id)
+        or_(
+            Task.assignees.any(id=current_user.id),
+            Task.assigned_to == current_user.id
+        )
     ).all()
     return tasks
 

@@ -18,7 +18,9 @@ class Task(Base):
     priority = Column(String, default="medium")  # low / medium / high
 
     workspace_id = Column(Integer, ForeignKey("workspaces.id"), nullable=False)
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    # Legacy single-assignee column kept for backward compatibility and smooth migration.
+    assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     due_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -52,10 +52,9 @@ class TaskAssigneeRemove(BaseModel):
 class TaskResponse(TaskBase):
     id: int
     workspace_id: int
-    created_by: int
+    created_by: Optional[int] = None
     assignees: List[AssigneeInfo]
     created_at: datetime
 
     class Config:
         from_attributes = True
-

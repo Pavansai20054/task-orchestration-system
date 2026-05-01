@@ -317,15 +317,17 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         >
           Create Workspace
         </button>
-        <button className="btn btn-secondary" onClick={() => setMode("show")}>
-          Show Workspaces
-        </button>
-        <button 
-          className="btn btn-info"
-          onClick={() => setShowNotifications(!showNotifications)}
-        >
-          🔔 Notifications ({assignedTasks.length})
-        </button>
+        <div className="dashboard-primary-actions-right">
+          <button className="btn btn-secondary" onClick={() => setMode("show")}>
+            Show Workspaces
+          </button>
+          <button 
+            className="btn btn-info"
+            onClick={() => setShowNotifications(!showNotifications)}
+          >
+            🔔 Notifications ({assignedTasks.length})
+          </button>
+        </div>
       </div>
 
       {mode === "create" ? (
