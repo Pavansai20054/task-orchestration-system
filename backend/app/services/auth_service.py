@@ -4,9 +4,13 @@ from fastapi import HTTPException, status
 from app.models.user import User
 from app.schemas.user import UserCreate
 from app.core.security import hash_password, verify_password, create_access_token
+from app.utils.validators import validate_password
 
 
 def register_user(db: Session, user_data: UserCreate):
+    # Validate password strength
+    validate_password(user_data.password)
+    
     # Check if user exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
 
@@ -44,3 +48,7 @@ def login_user(db: Session, email: str, password: str):
         "access_token": token,
         "token_type": "bearer"
     }
+
+
+def logout_user():
+    return {"message": "Logged out successfully"}

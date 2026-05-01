@@ -27,12 +27,13 @@ API base: `http://127.0.0.1:8000`
 
 ## API Overview
 
-- Auth: `POST /auth/register`, `POST /auth/login`
-- Users: `GET /users/me`
-- Workspaces: `POST /workspaces`, `GET /workspaces`, `POST /workspaces/{workspace_id}/members`
-- Tasks: `POST /tasks`, `PUT /tasks/{task_id}`, `GET /tasks`
+- Auth: `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`
+- Users: `GET /users/me`, `PUT /users/me`
+- Workspaces: `POST /workspaces`, `GET /workspaces`, `GET /workspaces/{id}`, `PUT /workspaces/{id}`, `DELETE /workspaces/{id}`, `POST /workspaces/{id}/members`, `GET /workspaces/{id}/members`, `DELETE /workspaces/{id}/members/{user_id}`, `GET /workspaces/{id}/tasks`
+- Tasks: `POST /tasks`, `GET /tasks`, `GET /tasks/{id}`, `PUT /tasks/{id}`, `PATCH /tasks/{id}/status`, `PATCH /tasks/{id}/assign`, `DELETE /tasks/{id}`
+- Dashboard: `GET /dashboard`, `GET /dashboard/overdue-tasks`
 
-Postman collection: [docs/postman_collection.json](docs/postman_collection.json)
+Postman collection: [backend/docs/postman_collection.json](backend/docs/postman_collection.json)
 
 ## Run tests
 

@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 
 from app.db.database import Base
+from app.models.task_assignee import TaskAssignee
 
 
 class Task(Base):
@@ -17,11 +18,11 @@ class Task(Base):
     priority = Column(String, default="medium")  # low / medium / high
 
     workspace_id = Column(Integer, ForeignKey("workspaces.id"), nullable=False)
-    assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     due_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     workspace = relationship("Workspace", back_populates="tasks")
-    assignee = relationship("User", back_populates="assigned_tasks")
+    assignees = relationship("User", secondary=TaskAssignee, back_populates="assigned_tasks")

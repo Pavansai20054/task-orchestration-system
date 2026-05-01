@@ -7,13 +7,14 @@ type CurrentUser = {
   email: string;
 };
 
-type RegisterProps = {
+type LoginProps = {
   onAuth: (user: CurrentUser) => void;
 };
 
-export default function Register({ onAuth }: RegisterProps) {
+export default function Login({ onAuth }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function Register({ onAuth }: RegisterProps) {
   const isValidEmail = (value: string) =>
     /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value);
 
-  const handleRegister = async () => {
+  const handleLogin = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -36,25 +37,25 @@ export default function Register({ onAuth }: RegisterProps) {
         return;
       }
 
-      await API.post("/auth/register", {
-        email,
-        password,
-      });
-
       const res = await API.post("/auth/login", {
         email,
         password,
       });
 
       const token = res.data.access_token;
+
       localStorage.setItem("token", token);
       setAuthToken(token);
 
       const me = await API.get("/users/me");
       onAuth(me.data);
       navigate("/dashboard");
-    } catch (err: any) {
-      setError(err?.response?.data?.detail ?? "Registration failed");
+    } catch (err: unknown) {
+      const detail =
+        typeof err === "object" && err !== null && "response" in err
+          ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : undefined;
+      setError(detail ?? "Authentication failed");
     } finally {
       setIsLoading(false);
     }
@@ -63,9 +64,9 @@ export default function Register({ onAuth }: RegisterProps) {
   return (
     <section className="card card-elevated">
       <div className="card-header">
-        <p className="card-kicker">Get started</p>
-        <h2 className="card-title">Create your account</h2>
-        <p className="card-subtitle">Set up your workspace in minutes.</p>
+        <p className="card-kicker">Sign in</p>
+        <h2 className="card-title">Welcome back</h2>
+        <p className="card-subtitle">Access your workspaces and tasks.</p>
       </div>
 
       <div className="form">
@@ -80,27 +81,38 @@ export default function Register({ onAuth }: RegisterProps) {
         </label>
         <label className="field">
           <span>Password</span>
-          <input
-            placeholder="Choose a strong password"
-            type="password"
-            onChange={(e) => setPassword(e.target.value)}
-            value={password}
-          />
+          <div className="password-field">
+            <input
+              placeholder="••••••••"
+              type={showPassword ? "text" : "password"}
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
         </label>
         {error ? <p className="form-error">{error}</p> : null}
         <button
           className="btn btn-primary"
-          onClick={handleRegister}
+          onClick={handleLogin}
           disabled={isLoading}
         >
-          {isLoading ? "Working..." : "Create account"}
+          {isLoading ? "Working..." : "Login"}
         </button>
         <p className="auth-switch">
-          Already have an account? <Link to="/login">Login</Link>
+          New here? <Link to="/register">Create an account</Link>
         </p>
       </div>
       <div className="card-footer">
-        <span className="hint">By registering you agree to basic usage.</span>
+        <span className="hint">
+          Tip: Use the same email you registered with.
+        </span>
       </div>
     </section>
   );
